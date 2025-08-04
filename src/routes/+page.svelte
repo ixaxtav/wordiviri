@@ -200,13 +200,6 @@
         New Game
       </button>
       <p class="text-gray-400 text-sm">Press Enter to start new game</p>
-    {:else}
-      <button
-        class="btn bg-purple-500 text-white px-4 py-2 rounded"
-        on:click={startNewGame}
-      >
-        New Game? 🤔
-      </button>
     {/if}
   </div>
 </div>

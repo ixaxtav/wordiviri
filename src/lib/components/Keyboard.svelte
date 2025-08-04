@@ -1,20 +1,44 @@
 <script lang="ts">
-  export let guesses: string[];
-  export let targetWord: string;
+  export let guesses: string[] = [];
+  export let targetWord: string = '';
   export let onKeyPress: (key: string) => void;
 
-  // Get keyboard letter color
+  // Reactive keyboard colors
+  let keyboardColors: Record<string, string> = {};
+  $: guesses.length, targetWord, keyboardColors = (() => {
+    const colors: Record<string, string> = {};
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    letters.forEach(letter => {
+      colors[letter] = getKeyboardLetterColor(letter);
+    });
+    return colors;
+  })();
+
+  // Get keyboard letter color with proper Wordle logic
   function getKeyboardLetterColor(letter: string): string {
+    let bestColor = 'bg-gray-200'; // Default color
+    
+    // Check all guesses to determine the best color for this letter
     for (let guess of guesses) {
       for (let i = 0; i < guess.length; i++) {
         if (guess[i] === letter) {
-          if (guess[i] === targetWord[i]) return 'bg-green-500';
-          if (targetWord.includes(letter)) return 'bg-yellow-500';
-          return 'bg-gray-500';
+          // If letter is in correct position, it's green (highest priority)
+          if (guess[i] === targetWord[i]) {
+            return 'bg-green-500';
+          }
+          
+          // If letter exists in target word (but not in correct position), it's yellow
+          if (targetWord.includes(letter)) {
+            bestColor = 'bg-yellow-500';
+          } else {
+            // If letter doesn't exist in target word, it's gray
+            bestColor = 'bg-gray-500';
+          }
         }
       }
     }
-    return 'bg-gray-200';
+    
+    return bestColor;
   }
 </script>
 
@@ -24,10 +48,11 @@
       {#if row === 'ZXCVBNM'}
         {#each row.split('') as letter}
           <button
-            class="key {getKeyboardLetterColor(letter)}"
+            class="key {keyboardColors[letter] || 'bg-gray-200'}"
             on:click={() => onKeyPress(letter)}
           >
             {letter}
+            <span></span>
           </button>
         {/each}
         <button
@@ -39,7 +64,7 @@
       {:else}
         {#each row.split('') as letter}
           <button
-            class="key {getKeyboardLetterColor(letter)}"
+            class="key {keyboardColors[letter] || 'bg-gray-200'}"
             on:click={() => onKeyPress(letter)}
           >
             {letter}
@@ -109,27 +134,27 @@
   }
 
   /* Color overrides for keys */
-  .bg-green-500 {
+  .key.bg-green-500 {
     background-color: #10b981 !important;
     color: white !important;
   }
 
-  .bg-yellow-500 {
+  .key.bg-yellow-500 {
     background-color: #f59e0b !important;
     color: white !important;
   }
 
-  .bg-gray-500 {
+  .key.bg-gray-500 {
     background-color: #6b7280 !important;
     color: white !important;
   }
 
-  .bg-gray-200 {
+  .key.bg-gray-200 {
     background-color: #4b5563 !important;
     color: #e5e7eb !important;
   }
 
-  .bg-gray-200:hover {
+  .key.bg-gray-200:hover {
     background-color: #6b7280 !important;
   }
 
